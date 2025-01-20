@@ -47,6 +47,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -372,6 +373,10 @@ public final class RowDataDebeziumDeserializeSchema
                     return dbzObj;
                 } else if (dbzObj instanceof Long) {
                     return ((Long) dbzObj).intValue();
+                } else if (dbzObj instanceof Struct) {
+                    // CHECKME: for a NUMBER type without defined precision and scale. https://github.com/apache/flink-cdc/issues/552
+                    byte[] value = (byte[]) (((Struct) dbzObj).get("value"));
+                    return new BigInteger(value).intValue();
                 } else {
                     return Integer.parseInt(dbzObj.toString());
                 }
